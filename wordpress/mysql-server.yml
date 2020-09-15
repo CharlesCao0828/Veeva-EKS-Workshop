@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-server
+  labels:
+    app: mysql-server
+    version: latest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-server
+      version: latest
+  template:
+    metadata:
+      labels:
+        app: mysql-server
+        version: latest
+    spec:
+      containers:
+      - name: mysql-server
+        image: mysql
+        ports:
+        - containerPort: 3306
+        env:  
+        - name: MYSQL_DATABASE
+          value: wordpress
+        - name: MYSQL_ROOT_PASSWORD
+          value: '123456'
+        volumeMounts:
+        - name: mysql-data-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-data-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-server
+spec:
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  selector:
+    app: mysql-server
+    version: latest
+---
